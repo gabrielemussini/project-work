@@ -1,19 +1,8 @@
 CREATE TYPE stato_asset as ENUM ('Attivo', 'In dismissione', 'Dismesso');
 
-CREATE TABLE asset (
-	AssetID int AUTO_INCREMENT PRIMARY KEY,
-	Nome varchar(255),
-	Funzionlita varchar(255),
-	Trasferimento varchar(255),
-	Dismissione varchar(255),
-	Stato stato_asset,
-	Configurazione text (max),
-	AccessoRemoto BOOLEAN,
-	);
-
 CREATE TABLE hardware (
 	HardwareID int AUTO_INCREMENT PRIMARY KEY,
-	Categoria varchar(255),
+	Categoria varchar(20),
 	Mac varchar(8),
 	IP varchar (15),
 	Produttore varchar(255),
@@ -24,11 +13,8 @@ CREATE TABLE hardware (
 
 CREATE TABLE software (
 	SoftwareID int AUTO_INCREMENT PRIMARY KEY,
-	installazione text (max),
-	TipoLicenza varchar (255),
-	Categoria varchar(255),
-	AggiornAuto BOOLEAN,
-	DataAggiorn DATE,
+	TipoLicenza varchar (20),
+	Categoria varchar(20),
 	SviluppoSicuro text (max),
 	Asset int,
 	FOREIGN KEY (Asset)	REFERENCES asset(AssetID)
@@ -37,29 +23,144 @@ CREATE TABLE software (
 CREATE TABLE database (
 	DatabaseID int AUTO_INCREMENT PRIMARY KEY,
 	Contenuto varchar (255),
-	Riservatezza varchar (255),
-	Posizione text (max),
+	Riservatezza varchar (20),
+	Posizione varchar (20),
 	Asset int,
 	FOREIGN KEY (Asset) REFERENCES asset(AssetID)
 );
 
-CREATE TABLE non_sistema(
+CREATE TABLE servizi(
 	NonSistemaID int AUTO_INCREMENT PRIMARY KEY,
-	Categoria varchar (255),
+	Categoria varchar (20),
 	Asset int,
 	FOREIGN KEY (Asset) REFERENCES asset(AssetID)
 );
+
+CREATE TABLE asset (
+	AssetID int AUTO_INCREMENT PRIMARY KEY,
+	Nome varchar(255),
+	Funzionlita varchar(255),
+	AggiornAuto: BOOLEAN,
+	Stato stato_asset,
+	Configurazione text (max)
+	);
+
+CREATE TABLE macroarea (
+	MacroareaID int AUTO_INCREMENT PRIMARY KEY,
+	Nome varchar(50),
+	Descrizione text(max),
+	Rilevanza varchar(20)
+	);
 
 CREATE TABLE fornitura(
 	FornituraID int AUTO_INCREMENT PRIMARY KEY,
-	Tipologia varchar(255),
-	Nome varchar(255),
-	DataInizio DATE,
-	DataFine DATE,
+	TipoFornitura varchar(20),
+	Tipologia varchar(50),
+	Nome varchar(100),
+	DataFornitura DATE,
 	Asset int,
 	Stakeholder int,
 	FOREIGN KEY (Asset) REFERENCES asset(AssetID),
 	FOREIGN KEY (Stakeholder) REFERENCES stakeholder(StakeholderID) 
+);
+
+CREATE TABLE livello_atteso(
+	LivelloAttesoID int AUTO_INCREMENT PRIMARY KEY,
+	Asset int,
+	Metrica varchar(100),
+	SogliaAllertaMax real,
+	SogliaAllertaMin real,
+	Raci int,
+	FOREIGN KEY (Asset) REFERENCES asset(AssetID),
+	FOREIGN KEY (Raci) REFERENCES raci(RaciID)
+);
+
+CREATE TABLE riesame(
+	RiesameID int AUTO_INCREMENT PRIMARY KEY,
+	DataRiesame DATE,
+	Descrizione text(max),
+	Esito text(max),
+	LinkDocumenti text(max),
+	Raci int,
+	FOREIGN KEY (Raci) REFERENCES raci(RaciID)
+);
+
+CREATE TABLE flussi_rete(
+	FlussoID int AUTO_INCREMENT PRIMARY KEY,
+	EntitaOrigine varchar(100),
+	AssetOrigine int,
+	StakeholderOrigine int,
+	EntitaDestinazione varchar(100),
+	AssetDestiazione int,
+	StakeholderDestinazione int,
+	Direzione varchar(20),
+	Scopo varchar(255),
+	AutorizzatoDa int,
+	DataAutorizzazione DATE,
+	Stato stato_asset,
+	FOREIGN KEY (AssetOrigine) REFERENCES asset(AssetID),
+	FOREIGN KEY (StakeholderOrigine) REFERENCES stakeholder(StakehodlerID),
+	FOREIGN KEY (AssetDestinazione) REFERENCES asset(AssetID),
+	FOREIGN KEY (StakeholderDestinazione) REFERENCES stakeholder(StakehodlerID),
+	FOREIGN KEY (AutorizzatoDa) REFERENCES raci(RaciID)
+);
+
+CREATE TABLE utenze (
+	UtenzeID int AUTO_INCREMENT PRIMARY KEY,
+	Asset int,
+	Stakeholder int,
+	DataInizio DATE,
+	DataFine DATE,
+	Credenziali BOOLEAN,
+	TipoAccesso varchar(20),
+	TempoConservazioneLog DATE,
+	ConcessoDa int,
+	ModalitaAccesso text(max),
+	FOREIGN KEY (Asset) REFERENCES asset(AssetID),
+	FOREIGN KEY (Stakehodler) REFERENCES stakeholder(StakeholderID),
+	FOREIGN KEY (ConcessoDa) REFERENCES raci(RaciID)
+);
+
+CREATE TABLE stakeholder (
+	StakehodlerID int AUTO_INCREMENT PRIMARY KEY
+	Email varchar(30),
+	Telefono varchar(20),
+);
+
+CREATE TABLE personale (
+	PersonaleID int AUTO_INCREMENT PRIMARY KEY,
+	Nome varchar(50),
+	Cognome varchar(50),
+	Mansione varchar(50),
+	Stakeholder int,
+	FOREIGN KEY (Stakeholder) REFERENCES stakeholder(StakehodlerID)
+);
+
+CREATE TABLE fornitori (
+	FornitoreID int AUTO_INCREMENT PRIMARY KEY,
+	RagioneSociale varchar(100),
+	CFPIVA varchar(30),
+	SoggettoNIS2 BOOLEAN,
+	Stakeholder int,
+	FOREIGN KEY (Stakeholder) REFERENCES stakeholder(StakeholderID)
+);
+
+CREATE TABLE vulnerabilita_forn (
+	VulnerabilitaID int AUTO_INCREMENT PRIMARY KEY,
+	Fornitore int,
+	NomeVulnerabilita varchar(100),
+	Gravita varchar(20),
+	Note text(max),
+	FOREIGN KEY (Fornitore) REFERENCES fornitori(FornitoreID)
+);
+
+CREATE TABLE clienti (
+	ClientiID int AUTO_INCREMENT PRIMARY KEY,
+	RagioneSociale varchar(100),
+	CFPIVA varchar(30),
+	SoggettoNIS2 BOOLEAN,
+	Stakeholder int,
+	FOREIGN KEY (Stakeholder) REFERENCES stakeholder(StakeholderID)
 );
 
 CREATE TABLE test_backup(
@@ -94,11 +195,6 @@ CREATE TABLE rischio_asset (
 	FOREIGN KEY (Valutazione) REFERENCES valutazione_rischio(ValutazioneID) 
 );
 
-CREATE TABLE flussi_rete(
-	FlussoID int AUTO_INCREMENT PRIMARY KEY,
-	Tipo varchar(255)
-);
-
 CREATE TABLE nomina (
 	NominaID int AUTO_INCREMENT PRIMARY KEY,
 	Ruolo varchar(255),
@@ -106,63 +202,6 @@ CREATE TABLE nomina (
 	DataInizio DATE,
 	DataFine DATE,
 	LinkDocumenti text(max),
-	Stakeholder int,
-	FOREIGN KEY (Stakeholder) REFERENCES stakeholder(StakeholderID)
-);
-
-CREATE TABLE requisiti_sicurezza_forn (
-	RequisitiID int AUTO_INCREMENT PRIMARY KEY,
-	Fornitore int,
-	Ambito varchar(255),
-	Verificato BOOLEAN,
-	DataVerifica DATE,
-	FOREIGN KEY (Fornitore) REFERENCES fornitori(FornitoreID)
-);
-
-CREATE TABLE utenze (
-	UtenzeID int AUTO_INCREMENT PRIMARY KEY,
-	Asset int,
-	Stakeholder int,
-	DataInizio DATE,
-	DataFine DATE,
-	Credenziali BOOLEAN,
-	AccessoRemoto BOOLEAN,
-	AccessoFisico BOOLEAN,
-	Ruolo varchar(255),
-	ConcessoDa int,
-	FOREIGN KEY (Asset) REFERENCES asset(AssetID),
-	FOREIGN KEY (Stakehodler) REFERENCES stakeholder(StakeholderID),
-	FOREIGN KEY (ConcessoDa) REFERENCES stakeholder(StakeholderID)
-);
-
-CREATE TABLE stakeholder (
-	StakehodlerID int AUTO_INCREMENT PRIMARY KEY,
-	LinkDocumenti text(max),
-	AccessoSistemInfo: BOOLEAN,
-	AcessoPropIntell: BOOLEAN
-);
-
-CREATE TABLE personale (
-	PersonaleID int AUTO_INCREMENT PRIMARY KEY,
-	Nome varchar(255),
-	Cognome varchar(255),
-	Email varchar(255),
-	Telefono varchar(255),
-	Mansione varchar(255),
-	Ruolo varchar(255),
-	Stakeholder int,
-	FOREIGN KEY (Stakeholder) REFERENCES stakeholder(StakehodlerID)
-);
-
-CREATE TABLE fornitori (
-	FornitoreID int AUTO_INCREMENT PRIMARY KEY,
-	RagioneSociale varchar(255),
-	CFPIVA varchar(255),
-	LivelloCriticita int,
-	CriterioCriticita varchar(255),
-	TelefonoReferente varchar(255),
-	EmailReferente varchar(255),
-	SoggettoNIS2 BOOLEAN,
 	Stakeholder int,
 	FOREIGN KEY (Stakeholder) REFERENCES stakeholder(StakeholderID)
 );
