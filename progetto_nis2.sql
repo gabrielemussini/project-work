@@ -9,7 +9,7 @@ CREATE TABLE hardware (
 	Posizione varchar(255),
 	Asset int,
 	FOREIGN KEY (Asset) REFERENCES asset(AssetID)
-	);
+);
 
 CREATE TABLE software (
 	SoftwareID int AUTO_INCREMENT PRIMARY KEY,
@@ -18,7 +18,7 @@ CREATE TABLE software (
 	SviluppoSicuro text (max),
 	Asset int,
 	FOREIGN KEY (Asset)	REFERENCES asset(AssetID)
-	);
+);
 
 CREATE TABLE database (
 	DatabaseID int AUTO_INCREMENT PRIMARY KEY,
@@ -43,14 +43,14 @@ CREATE TABLE asset (
 	AggiornAuto: BOOLEAN,
 	Stato stato_asset,
 	Configurazione text (max)
-	);
+);
 
 CREATE TABLE macroarea (
 	MacroareaID int AUTO_INCREMENT PRIMARY KEY,
 	Nome varchar(50),
 	Descrizione text(max),
 	Rilevanza varchar(20)
-	);
+);
 
 CREATE TABLE fornitura(
 	FornituraID int AUTO_INCREMENT PRIMARY KEY,
@@ -70,9 +70,9 @@ CREATE TABLE livello_atteso(
 	Metrica varchar(100),
 	SogliaAllertaMax real,
 	SogliaAllertaMin real,
-	Raci int,
+	Squadra int,
 	FOREIGN KEY (Asset) REFERENCES asset(AssetID),
-	FOREIGN KEY (Raci) REFERENCES raci(RaciID)
+	FOREIGN KEY (Squadra) REFERENCES squadra(SquadraID)
 );
 
 CREATE TABLE riesame(
@@ -81,8 +81,8 @@ CREATE TABLE riesame(
 	Descrizione text(max),
 	Esito text(max),
 	LinkDocumenti text(max),
-	Raci int,
-	FOREIGN KEY (Raci) REFERENCES raci(RaciID)
+	Squadra int,
+	FOREIGN KEY (Squadra) REFERENCES squadra(SquadraID)
 );
 
 CREATE TABLE flussi_rete(
@@ -102,7 +102,7 @@ CREATE TABLE flussi_rete(
 	FOREIGN KEY (StakeholderOrigine) REFERENCES stakeholder(StakehodlerID),
 	FOREIGN KEY (AssetDestinazione) REFERENCES asset(AssetID),
 	FOREIGN KEY (StakeholderDestinazione) REFERENCES stakeholder(StakehodlerID),
-	FOREIGN KEY (AutorizzatoDa) REFERENCES raci(RaciID)
+	FOREIGN KEY (AutorizzatoDa) REFERENCES squadra(SquadraID)
 );
 
 CREATE TABLE utenze (
@@ -118,7 +118,7 @@ CREATE TABLE utenze (
 	ModalitaAccesso text(max),
 	FOREIGN KEY (Asset) REFERENCES asset(AssetID),
 	FOREIGN KEY (Stakehodler) REFERENCES stakeholder(StakeholderID),
-	FOREIGN KEY (ConcessoDa) REFERENCES raci(RaciID)
+	FOREIGN KEY (ConcessoDa) REFERENCES squadra(SquadraID)
 );
 
 CREATE TABLE stakeholder (
@@ -136,8 +136,9 @@ CREATE TABLE personale (
 	FOREIGN KEY (Stakeholder) REFERENCES stakeholder(StakehodlerID)
 );
 
-CREATE TABLE fornitori (
-	FornitoreID int AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE esterno (
+	EsternoID int AUTO_INCREMENT PRIMARY KEY,
+	TipoEsterno varchar(20),
 	RagioneSociale varchar(100),
 	CFPIVA varchar(30),
 	SoggettoNIS2 BOOLEAN,
@@ -145,91 +146,13 @@ CREATE TABLE fornitori (
 	FOREIGN KEY (Stakeholder) REFERENCES stakeholder(StakeholderID)
 );
 
-CREATE TABLE vulnerabilita_forn (
+CREATE TABLE vulnerabilita (
 	VulnerabilitaID int AUTO_INCREMENT PRIMARY KEY,
-	Fornitore int,
+	Esterno int,
 	NomeVulnerabilita varchar(100),
 	Gravita varchar(20),
 	Note text(max),
-	FOREIGN KEY (Fornitore) REFERENCES fornitori(FornitoreID)
-);
-
-CREATE TABLE clienti (
-	ClientiID int AUTO_INCREMENT PRIMARY KEY,
-	RagioneSociale varchar(100),
-	CFPIVA varchar(30),
-	SoggettoNIS2 BOOLEAN,
-	Stakeholder int,
-	FOREIGN KEY (Stakeholder) REFERENCES stakeholder(StakeholderID)
-);
-
-CREATE TABLE test_backup(
-	TestBackupID int AUTO_INCREMENT PRIMARY KEY,
-	Asset int,
-	DataTest DATE,
-	Esito BOOLEAN,
-	FOREIGN KEY (Asset) REFERENCES asset(AssetID)
-);
-
-CREATE TABLE manutenzione(
-	ManutenzioneID int AUTO_INCREMENT PRIMARY KEY,
-	Asset int,
-	DataMan DATE,
-	DescManutenzione text(max),
-	FOREIGN KEY (Asset) REFERENCES asset(AssetID)
-);
-
-CREATE TABLE monitoraggio(
-	MonitoraggioID int AUTO_INCREMENT PRIMARY KEY,
-	Asset int,
-	DataMon DATE,
-	Esito BOOLEAN,
-	FOREIGN KEY (Asset) REFERENCES asset(AssetID)
-);
-
-CREATE TABLE rischio_asset (
-	Asset int NOT NULL,
-	Valutazione int NOT NULL,
-	PRIMARY KEY (Asset, Valutazione),
-	FOREIGN KEY (Asset) REFERENCES asset(AssetID),
-	FOREIGN KEY (Valutazione) REFERENCES valutazione_rischio(ValutazioneID) 
-);
-
-CREATE TABLE nomina (
-	NominaID int AUTO_INCREMENT PRIMARY KEY,
-	Ruolo varchar(255),
-	Descrizione text(max),
-	DataInizio DATE,
-	DataFine DATE,
-	LinkDocumenti text(max),
-	Stakeholder int,
-	FOREIGN KEY (Stakeholder) REFERENCES stakeholder(StakeholderID)
-);
-
-CREATE TABLE valutazione_rischio (
-	ValutazioneID int AUTO_INCREMENT PRIMARY KEY,
-	ResponsabileValutaz int,
-	DataVal DATE,
-	Test varchar(255),
-	Rischio int,
-	FOREIGN KEY (ResponsabileValutaz) REFERENCES nomina(NominaID),
-	FOREIGN KEY (Rischio) REFERENCES rischio(RischioID)
-);
-
-CREATE TABLE rischio (
-	RischioID int AUTO_INCREMENT PRIMARY KEY,
-	Denominazione varchar(255),
-	TipologiaRischio varchar(255),
-	AnalisiRIschioProb int,
-	AnalisiRischioGrav int,
-	LinkDocumentiVal text(max),
-	PonderazioneRischioSpiegazione varchar(255),
-	PonderazioneRischioTipo varchar(255),
-	TrattamentoRischioResponsabile int,
-	TrattamentoRischioScadenza DATE,
-	TrattamentoRischioAzione varchar(255),
-	StatoTrattRischio varchar(255),
-	FOREIGN KEY TrattamentoRischioResponsabile REFERENCES stakeholder(StakeholderID)
+	FOREIGN KEY (Esterno) REFERENCES esterno(EsternoID)
 );
 
 CREATE TABLE formazione (
@@ -248,6 +171,170 @@ CREATE TABLE piano_formazione(
 	Descrizione varchar(255),
 	DataCreazione DATE,
 	Specializzato BOOLEAN,
+	Approvato BOOLEAN
+);
+
+CREATE TABLE squadra_stakeholder (
+	OperStakID int AUTO_INCREMENT PRIMARY KEY,
+	Squadra int,
+	Stakeholder int,
+	Ruolo varchar(20),
+	FOREIGN KEY Squadra REFERENCES squadra(SquadraID),
+	FOREIGN KEY Stakehodler REFERENCES stakeholder(StakeholderID)
+);
+
+CREATE TABLE squadra (
+	SquadraID int AUTO_INCREMENT PRIMARY KEY,
+	Nome varchar(100)
+);
+
+CREATE TABLE nomina (
+	NominaID int AUTO_INCREMENT PRIMARY KEY,
+	Nome varchar(255),
+	Descrizione text(max),
+	Dati varchar(20),
+	DataInizio DATE,
+	DataFine DATE,
+	LinkDocumenti text(max),
+	Stakeholder int,
+	Sostituto int,
+	FOREIGN KEY (Stakeholder) REFERENCES stakeholder(StakeholderID),
+	FOREIGN KEY (Sostituto) REFERENCES stakeholder(StakeholderID)
+);
+
+CREATE TABLE ruolo_raci (
+	Raci int NOT NULL,
+	Nomina int NOT NULL,
+	Ruolo varchar(20),
+	PRIMARY KEY (Raci, Nomina),
+	FOREIGN KEY Raci REFERENCES raci(RaciID),
+	FOREIGN KEY Nomina REFERENCES nomina(NominaID)
+);
+
+CREATE TABLE raci (
+	RaciID int AUTO_INCREMENT PRIMARY KEY
+);
+
+CREATE TABLE attivita (
+	Attivita int AUTO_INCREMENT PRIMARY KEY,
+	Asset int,
+	Tipologia varchar(50),
+	Nome varchar(100),
+	Procedimento text(max),
+	DataInizio DATE,
+	DataFine DATE,
+	LinkDocumento text(max),
+	Esito text(max),
+	Squadra int,
+	Note text(max),
+	FOREIGN KEY Asset REFERENCES asset(AssetID),
+	FOREIGN KEY Squadra REFERENCES squadra(SquadraID)
+);
+
+CREATE TABLE installazione (
+	InstallazioneID int AUTO_INCREMENT PRIMARY KEY,
+	Attivita int,
+	AssetSuCuiEInstallato int,
+	FOREIGN KEY Attivita REFERENCES attivita(AttivitaID),
+	FOREIGN KEY AssetSuCuiEInstallato REFERENCES asset(AssetID)
+);
+
+CREATE TABLE installazione (
+	InstallazioneID int AUTO_INCREMENT PRIMARY KEY,
+	Attivita int,
+	AssetSuCuiEInstallato int,
+	FOREIGN KEY Attivita REFERENCES attivita(AttivitaID),
+	FOREIGN KEY AssetSuCuiEInstallato REFERENCES asset(AssetID)
+);
+
+CREATE TABLE monitoraggio (
+	MonitoraggioID int AUTO_INCREMENT PRIMARY KEY,
+	Attivita int,
+	Metrica varchar(100),
+	Valore real,
+	FOREIGN KEY Attivita REFERENCES attivita(AttivitaID)
+);
+
+CREATE TABLE test_vulnerabilita (
+	TestID int AUTO_INCREMENT PRIMARY KEY,
+	Attivita int,
+	TipoTest varchar(40),
+	FOREIGN KEY Attivita REFERENCES attivita(AttivitaID)
+);
+
+CREATE TABLE miglioramento_attuato (
+	MiglioramentoAttID int AUTO_INCREMENT PRIMARY KEY,
+	Attivita int,
+	Miglioramento int,
+	FOREIGN KEY Attivita REFERENCES attivita(AttivitaID),
+	FOREIGN KEY Miglioramento REFERENCES miglioramento(MiglioramentoID)
+);
+
+CREATE TABLE backupEff (
+	BackupID int AUTO_INCREMENT PRIMARY KEY,
+	Attivita int,
+	TipoBackup varchar(50),
+	BackupPos varchar(100),
+	Cifratura BOOLEAN,
+	FOREIGN KEY Attivita REFERENCES attivita(AttivitaID)
+);
+
+CREATE TABLE test_backup(
+	TestBackupID int AUTO_INCREMENT PRIMARY KEY,
+	Asset int,
+	BackupTestato int,
+	FOREIGN KEY (Asset) REFERENCES asset(AssetID),
+	FOREIGN KEY (BackupTestato) REFERENCES backupEff(BackupID)
+);
+
+CREATE TABLE comunicazione_attivita(
+	ComunicazioneID int AUTO_INCREMENT PRIMARY KEY,
+	Asset int,
+	TipoComunicazione varchar(20),
+	Destinatari text(max),
+	CanaleTrasmissione varchar(100),
+	FOREIGN KEY (Asset) REFERENCES asset(AssetID)
+);
+
+CREATE TABLE procedura (
+	ProceduraID int AUTO_INCREMENT PRIMARY KEY,
+	Raci int,
+	Finalita varchar(255),
+	Tipologia Varchar(100),
+	Nome varchar(255),
+	Procedimento text(max),
+	ConAttivazione text(max),
+	ConDisattivazione text(max),
+	ProcedReport text(max),
+	DataCreazione DATE,
+	DataDimissione DATE,
+	LinkDocumento text(max),
+	Approvato BOOLEAN,
+	FOREIGN KEY (Raci) REFERENCES raco(RaciID)
+);
+
+CREATE TABLE asset_procedura (
+	Risorse int NOT NULL,
+	Procedura int NOT NULL,
+	PRIMARY KEY (Risorse, Procedura),
+	FOREIGN KEY Risorse REFERENCES asset(AssetID),
+	FOREIGN KEY Procedura REFERENCES procedura(ProceduraID)
+);
+
+CREATE TABLE rischio (
+	RischioID int AUTO_INCREMENT PRIMARY KEY,
+	Denominazione varchar(255),
+	TipologiaRischio varchar(255),
+	AnalisiRIschioProb int,
+	AnalisiRischioGrav int,
+	LinkDocumentiVal text(max),
+	PonderazioneRischioSpiegazione varchar(255),
+	PonderazioneRischioTipo varchar(255),
+	TrattamentoRischioResponsabile int,
+	TrattamentoRischioScadenza DATE,
+	TrattamentoRischioAzione varchar(255),
+	StatoTrattRischio varchar(255),
+	FOREIGN KEY TrattamentoRischioResponsabile REFERENCES stakeholder(StakeholderID)
 );
 
 CREATE TABLE gestione_crisi(
