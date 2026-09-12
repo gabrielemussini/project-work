@@ -239,14 +239,6 @@ CREATE TABLE installazione (
 	FOREIGN KEY AssetSuCuiEInstallato REFERENCES asset(AssetID)
 );
 
-CREATE TABLE installazione (
-	InstallazioneID int AUTO_INCREMENT PRIMARY KEY,
-	Attivita int,
-	AssetSuCuiEInstallato int,
-	FOREIGN KEY Attivita REFERENCES attivita(AttivitaID),
-	FOREIGN KEY AssetSuCuiEInstallato REFERENCES asset(AssetID)
-);
-
 CREATE TABLE monitoraggio (
 	MonitoraggioID int AUTO_INCREMENT PRIMARY KEY,
 	Attivita int,
@@ -297,56 +289,109 @@ CREATE TABLE comunicazione_attivita(
 );
 
 CREATE TABLE procedura (
-	ProceduraID int AUTO_INCREMENT PRIMARY KEY,
-	Raci int,
-	Finalita varchar(255),
-	Tipologia Varchar(100),
-	Nome varchar(255),
-	Procedimento text(max),
-	ConAttivazione text(max),
-	ConDisattivazione text(max),
-	ProcedReport text(max),
-	DataCreazione DATE,
-	DataDimissione DATE,
-	LinkDocumento text(max),
-	Approvato BOOLEAN,
-	FOREIGN KEY (Raci) REFERENCES raco(RaciID)
+	procedura_id int AUTO_INCREMENT PRIMARY KEY,
+	raci_id int,
+	finalita varchar(255),
+	tipologia Varchar(100),
+	nome varchar(255),
+	procedimento text(max),
+	con_attivazione text(max),
+	con_disattivazione text(max),
+	proced_report text(max),
+	data_creazione DATE,
+	data_dimissione DATE,
+	link_documento text(max),
+	approvato BOOLEAN,
+	FOREIGN KEY (raci_id) REFERENCES raci(raci_id)
 );
 
 CREATE TABLE asset_procedura (
-	Risorse int NOT NULL,
-	Procedura int NOT NULL,
-	PRIMARY KEY (Risorse, Procedura),
-	FOREIGN KEY Risorse REFERENCES asset(AssetID),
-	FOREIGN KEY Procedura REFERENCES procedura(ProceduraID)
+	risorse_id int NOT NULL,
+	Procedura_id int NOT NULL,
+	PRIMARY KEY (risorse_id, procedura_id),
+	FOREIGN KEY risorse_id REFERENCES asset(asset_id),
+	FOREIGN KEY procedura_id REFERENCES procedura(procedura_id)
+);
+
+CREATE TABLE comunicazione_procedura (
+	comunicazione_id int AUTO_INCREMENT PRIMARY KEY,
+	procedura_id int,
+	direzione varchar(20),
+	tipo_comunicazione varchar(200),
+	comunicazione text,
+	destinatari text,
+	canale_trasmissione varchar(100),
+	FOREIGN KEY procedura_id REFERENCES procedura(procedura_id)
+);
+
+CREATE TABLE asset_procedura (
+	procedura_partenza int NOT NULL,
+	procedura_seguente int NOT NULL,
+	PRIMARY KEY (procedura_partenza,procedura_seguente),
+	FOREIGN KEY procedura_partenza REFERENCES procedura(procedura_id),
+	FOREIGN KEY procedura_seguente REFERENCES procedura(procedura_id)
+);
+
+CREATE TABLE ripristino (
+	ripristino_id int AUTO_INCREMENT PRIMARY KEY,
+	procedura_id int,
+	tempo_ripristino DATE,
+	costi_ripristino real,
+	FOREIGN KEY procedura_id REFERENCES procedura(procedura_id)
 );
 
 CREATE TABLE rischio (
-	RischioID int AUTO_INCREMENT PRIMARY KEY,
-	Denominazione varchar(255),
-	TipologiaRischio varchar(255),
-	AnalisiRIschioProb int,
-	AnalisiRischioGrav int,
-	LinkDocumentiVal text(max),
-	PonderazioneRischioSpiegazione varchar(255),
-	PonderazioneRischioTipo varchar(255),
-	TrattamentoRischioResponsabile int,
-	TrattamentoRischioScadenza DATE,
-	TrattamentoRischioAzione varchar(255),
-	StatoTrattRischio varchar(255),
-	FOREIGN KEY TrattamentoRischioResponsabile REFERENCES stakeholder(StakeholderID)
+	rischio_id int AUTO_INCREMENT PRIMARY KEY,
+	test_valutazione_id int,
+	nome varchar(255),
+	data_rilevazione DATE,
+	tipologia_rischio varchar(100),
+	descrizione text,
+	analisi_rischio_prob varchar(20),
+	analisi_rischio_grav varchar(20),
+	stato varchar(20),
+	note text,
+	FOREIGN KEY test_valutazione_id REFERENCES test_valutazione(test_id)
 );
 
-CREATE TABLE gestione_crisi(
-	GestioneID int AUTO_INCREMENT PRIMARY KEY,
-	Rischio int,
-	ProceduraNotifiche text(max),
-	ProceduraComunInt text(max),
-	ProceduraComunEst text(max),
-	ProceduraReport text(max),
-	ModalitaComm text(max),
-	Responsabile int,
-	FOREIGN KEY Rischio REFERENCES rischio(RischioID),
-	FOREIGN KEY Responsabile REFERENCES stakeholder(StakehodlerID)
+CREATE TABLE rischio_miglioramenti (
+	rischio_id int NOT NULL,
+	miglioramento_id int NOT NULL,
+	PRIMARY KEY (rischio_id, miglioramento_id),
+	FOREIGN KEY rischio_id REFERENCES rischio(rischio_id),
+	FOREIGN KEY miglioramento_id REFERENCES miglioramenti(miglioramento_id)
 );
 
+CREATE TABLE miglioramenti (
+	miglioramento_id int AUTO_INCREMENT PRIMARY KEY,
+	nome varchar(100),
+	descrizione text,
+	scopo text,
+	stato varchar(20),
+	priorita varchar(20),
+	scadenza DATE,
+	raci_id int,
+	note text,
+	FOREIGN KEY raci_id REFERENCES raci(raci_id)
+);
+
+CREATE TABLE crisi (
+	crisi_id int AUTO_INCREMENT PRIMARY KEY,
+	squadra_id int,
+	data_inizio DATE,
+	data_fine DATE,
+	descrizione text,
+	report text,
+	causa text,
+	conseguenze text,
+	gravita varchar(20),
+	FOREIGN KEY squadra_id REFERENCES squadra(squadra_id)
+);
+
+CREATE TABLE mitigare_crisi (
+	attivita_id int NOT NULL,
+	crisi_id int NOT NULL,
+	PRIMARY KEY (attivita_id, crisi_id),
+	FOREIGN KEY attivita_id REFERENCES attivita(attivita_id),
+	FOREIGN KEY crisi_id REFERENCES crisi(crisi_id)
+);
