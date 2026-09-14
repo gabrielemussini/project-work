@@ -1,34 +1,5 @@
 CREATE TYPE stato_asset_id as ENUM ('Attivo', 'In dismissione', 'Dismesso');
 
-CREATE TABLE macroarea (
-	macroarea_id SERIAL PRIMARY KEY,
-	nome VARCHAR(50) NOT NULL,
-	descrizione TEXT NOT NULL,
-	rilevanza VARCHAR(20) NOT NULL
-);
-
-CREATE TABLE asset (
-	asset_id SERIAL PRIMARY KEY,
-	nome VARCHAR(255) NOT NULL,
-	funzionlita VARCHAR(255) NOT NULL,
-	aggiorn_manuale BOOLEAN NOT NULL,
-	stato stato_asset_id NOT NULL,
-	configurazione TEXT,
-	macroarea_id INTEGER NOT NULL,
-	FOREIGN KEY (macroarea_id) REFERENCES macroarea(macroarea_id)
-);
-
-CREATE TABLE stakeholder (
-	stakeholder_id SERIAL PRIMARY KEY,
-	email_referente VARCHAR(30) NOT NULL,
-	telefono_referente VARCHAR(20) NOT NULL
-);
-
-CREATE TABLE squadra (
-	squadra_id SERIAL PRIMARY KEY,
-	nome VARCHAR(100)
-);
-
 CREATE TABLE hardware (
 	hardware_id SERIAL PRIMARY KEY,
 	categoria VARCHAR(20) NOT NULL,
@@ -63,6 +34,24 @@ CREATE TABLE servizi(
 	categoria VARCHAR (20) NOT NULL,
 	asset_id INTEGER NOT NULL,
 	FOREIGN KEY (asset_id) REFERENCES asset(asset_id)
+);
+
+CREATE TABLE asset (
+	asset_id SERIAL PRIMARY KEY,
+	nome VARCHAR(255) NOT NULL,
+	funzionlita VARCHAR(255) NOT NULL,
+	aggiorn_manuale BOOLEAN NOT NULL,
+	stato stato_asset_id NOT NULL,
+	configurazione TEXT,
+	macroarea_id INTEGER NOT NULL,
+	FOREIGN KEY (macroarea_id) REFERENCES macroarea(macroarea_id),
+);
+
+CREATE TABLE macroarea (
+	macroarea_id SERIAL PRIMARY KEY,
+	nome VARCHAR(50) NOT NULL,
+	descrizione TEXT NOT NULL,
+	rilevanza VARCHAR(20) NOT NULL
 );
 
 CREATE TABLE fornitura (
@@ -106,7 +95,7 @@ CREATE TABLE flussi_rete(
 	asset_origine INTEGER,
 	stakeholder_origine INTEGER,
 	entita_destinazione VARCHAR(100) NOT NULL,
-	asset_destinazione INTEGER,
+	asset_destiazione INTEGER,
 	stakeholder_destinazione INTEGER,
 	direzione VARCHAR(20) NOT NULL,
 	scopo VARCHAR(255) NOT NULL,
@@ -132,8 +121,14 @@ CREATE TABLE utenze (
 	concesso_da INTEGER NOT NULL,
 	modalita_accesso TEXT NOT NULL,
 	FOREIGN KEY (asset_id) REFERENCES asset(asset_id),
-	FOREIGN KEY (Stakeholder_id) REFERENCES Stakeholder(stakeholder_id),
+	FOREIGN KEY (Stakehodler_id) REFERENCES Stakeholder(stakeholder_id),
 	FOREIGN KEY (concesso_da) REFERENCES squadra(squadra_id)
+);
+
+CREATE TABLE stakeholder (
+	stakeholder_id SERIAL PRIMARY KEY
+	email_referente VARCHAR(30) NOT NULL,
+	telefono_referente VARCHAR(20) NOT NULL,
 );
 
 CREATE TABLE personale (
@@ -164,15 +159,6 @@ CREATE TABLE vulnerabilita (
 	FOREIGN KEY (esterno_id) REFERENCES esterno(esterno_id)
 );
 
-CREATE TABLE piano_formazione (
-	piano_id SERIAL PRIMARY KEY,
-	contenuto VARCHAR(255) NOT NULL,
-	descrizione VARCHAR(255),
-	data_creazione DATE NOT NULL,
-	specializzato BOOLEAN NOT NULL,
-	approvato BOOLEAN NOT NULL
-);
-
 CREATE TABLE formazione (
 	personale_id INTEGER NOT NULL,
 	piano_id INTEGER NOT NULL,
@@ -183,13 +169,27 @@ CREATE TABLE formazione (
 	FOREIGN KEY (piano_id) REFERENCES piano_formazione(piano_id)
 );
 
+CREATE TABLE piano_formazione(
+	piano_id SERIAL PRIMARY KEY,
+	contenuto VARCHAR(255) NOT NULL,
+	descrizione VARCHAR(255),
+	data_creazione DATE NOT NULL,
+	specializzato BOOLEAN NOT NULL,
+	approvato BOOLEAN NOT NULL
+);
+
 CREATE TABLE squadra_stakeholder (
 	oper_stak_id SERIAL PRIMARY KEY,
 	squadra_id INTEGER NOT NULL,
 	stakeholder_id INTEGER NOT NULL,
 	ruolo VARCHAR(20) NOT NULL,
-	FOREIGN KEY (squadra_id) REFERENCES squadra(squadra_id),
-	FOREIGN KEY (stakeholder_id) REFERENCES Stakeholder(stakeholder_id)
+	FOREIGN KEY squadra_id REFERENCES squadra(squadra_id),
+	FOREIGN KEY stakeholder_id REFERENCES Stakeholder(stakeholder_id)
+);
+
+CREATE TABLE squadra (
+	squadra_id SERIAL PRIMARY KEY,
+	nome VARCHAR(100)
 );
 
 CREATE TABLE nomina (
@@ -206,10 +206,6 @@ CREATE TABLE nomina (
 	FOREIGN KEY (sostituto) REFERENCES stakeholder(stakeholder_id)
 );
 
-CREATE TABLE raci (
-	raci_id SERIAL PRIMARY KEY
-);
-
 CREATE TABLE ruolo_raci (
 	raci_id INTEGER NOT NULL,
 	nomina_id INTEGER NOT NULL,
@@ -219,7 +215,11 @@ CREATE TABLE ruolo_raci (
 	FOREIGN KEY (nomina_id) REFERENCES nomina(nomina_id)
 );
 
-CREATE TABLE attivita (
+CREATE TABLE raci (
+	raci_id SERIAL PRIMARY KEY
+);
+
+CREATE TABLE attivita_id (
 	attivita_id SERIAL PRIMARY KEY,
 	asset_id INTEGER,
 	tipologia VARCHAR(50) NOT NULL,
@@ -231,16 +231,16 @@ CREATE TABLE attivita (
 	esito TEXT NOT NULL,
 	squadra_id INTEGER NOT NULL,
 	note TEXT,
-	FOREIGN KEY (asset_id) REFERENCES asset(asset_id),
-	FOREIGN KEY (squadra_id) REFERENCES squadra(squadra_id)
+	FOREIGN KEY asset_id REFERENCES asset(asset_id),
+	FOREIGN KEY squadra_id REFERENCES squadra(squadra_id)
 );
 
 CREATE TABLE installazione (
 	installazione_id SERIAL PRIMARY KEY,
 	attivita_id INTEGER NOT NULL,
 	asset_su_cui_e_installato INTEGER NOT NULL,
-	FOREIGN KEY (attivita_id) REFERENCES attivita(attivita_id),
-	FOREIGN KEY (asset_su_cui_e_installato) REFERENCES asset(asset_id)
+	FOREIGN KEY attivita_id REFERENCES attivita(attivita_id),
+	FOREIGN KEY asset_su_cui_e_installato REFERENCES asset(asset_id)
 );
 
 CREATE TABLE monitoraggio (
@@ -248,35 +248,22 @@ CREATE TABLE monitoraggio (
 	attivita_id INTEGER NOT NULL,
 	metrica VARCHAR(100) NOT NULL,
 	valore REAL NOT NULL,
-	FOREIGN KEY (attivita_id) REFERENCES attivita(attivita_id)
+	FOREIGN KEY attivita_id REFERENCES attivita(attivita_id)
 );
 
 CREATE TABLE test_vulnerabilita (
 	test_id SERIAL PRIMARY KEY,
 	attivita_id INTEGER NOT NULL,
 	tipo_test VARCHAR(40) NOT NULL,
-	FOREIGN KEY (attivita_id) REFERENCES attivita(attivita_id)
-);
-
-CREATE TABLE miglioramento (
-	miglioramento_id SERIAL PRIMARY KEY,
-	nome VARCHAR(100) NOT NULL,
-	descrizione TEXT NOT NULL,
-	scopo TEXT NOT NULL,
-	stato VARCHAR(20) NOT NULL,
-	priorita VARCHAR(20)NOT NULL,
-	scadenza DATE,
-	raci_id INTEGER NOT NULL,
-	note TEXT,
-	FOREIGN KEY (raci_id) REFERENCES raci(raci_id)
+	FOREIGN KEY attivita_id REFERENCES attivita(attivita_id)
 );
 
 CREATE TABLE miglioramento_attuato (
 	miglioramento_att_id SERIAL PRIMARY KEY,
 	attivita_id INTEGER NOT NULL,
 	miglioramento_id INTEGER NOT NULL,
-	FOREIGN KEY (attivita_id) REFERENCES attivita(attivita_id),
-	FOREIGN KEY (miglioramento_id) REFERENCES miglioramento(miglioramento_id)
+	FOREIGN KEY attivita_id REFERENCES attivita(attivita_id),
+	FOREIGN KEY miglioramento_id REFERENCES miglioramento(miglioramento_id)
 );
 
 CREATE TABLE backup_eff (
@@ -285,7 +272,7 @@ CREATE TABLE backup_eff (
 	tipo_backup VARCHAR(50) NOT NULL,
 	backup_pos VARCHAR(100) NOT NULL,
 	cifratura BOOLEAN NOT NULL,
-	FOREIGN KEY (attivita_id) REFERENCES attivita(attivita_id)
+	FOREIGN KEY attivita_id REFERENCES attivita(attivita_id)
 );
 
 CREATE TABLE test_backup (
@@ -338,7 +325,7 @@ CREATE TABLE comunicazione_procedura (
 	comunicazione TEXT NOT NULL,
 	destinatari TEXT NOT NULL,
 	canale_trasmissione VARCHAR(100) NOT NULL,
-	FOREIGN KEY (procedura_id) REFERENCES procedura(procedura_id)
+	FOREIGN KEY procedura_id REFERENCES procedura(procedura_id)
 );
 
 CREATE TABLE procedura_successiva (
@@ -359,7 +346,7 @@ CREATE TABLE ripristino (
 
 CREATE TABLE rischio (
 	rischio_id SERIAL PRIMARY KEY,
-	test_vulnerabilita_id INTEGER,
+	test_valutazione_id INTEGER,
 	nome VARCHAR(255) NOT NULL,
 	data_rilevazione DATE,
 	tipologia_rischio VARCHAR(100) NOT NULL,
@@ -368,7 +355,7 @@ CREATE TABLE rischio (
 	analisi_rischio_grav VARCHAR(20) NOT NULL,
 	stato VARCHAR(20) NOT NULL,
 	note TEXT,
-	FOREIGN KEY (test_vulnerabilita_id) REFERENCES test_vulnerabilita(test_id)
+	FOREIGN KEY (test_valutazione_id) REFERENCES test_valutazione(test_id)
 );
 
 CREATE TABLE rischio_miglioramenti (
@@ -376,7 +363,20 @@ CREATE TABLE rischio_miglioramenti (
 	miglioramento_id INTEGER NOT NULL,
 	PRIMARY KEY (rischio_id, miglioramento_id),
 	FOREIGN KEY (rischio_id) REFERENCES rischio(rischio_id),
-	FOREIGN KEY (miglioramento_id) REFERENCES miglioramento(miglioramento_id)
+	FOREIGN KEY (miglioramento_id) REFERENCES miglioramenti(miglioramento_id)
+);
+
+CREATE TABLE miglioramenti (
+	miglioramento_id SERIAL PRIMARY KEY,
+	nome VARCHAR(100) NOT NULL,
+	descrizione TEXT NOT NULL,
+	scopo TEXT NOT NULL,
+	stato VARCHAR(20) NOT NULL,
+	priorita VARCHAR(20)NOT NULL,
+	scadenza DATE,
+	raci_id INTEGER NOT NULL,
+	note TEXT,
+	FOREIGN KEY (raci_id) REFERENCES raci(raci_id)
 );
 
 CREATE TABLE crisi (
@@ -393,9 +393,9 @@ CREATE TABLE crisi (
 );
 
 CREATE TABLE mitigare_crisi (
-	attivita_id INTEGER NOT NULL,
+	attivita_idì INTEGER NOT NULL,
 	crisi_id INTEGER NOT NULL,
 	PRIMARY KEY (attivita_id, crisi_id),
-	FOREIGN KEY (attivita_id) REFERENCES attivita(attivita_id),
+	FOREIGN KEY (attivita_id) REFERENCES attivita_id(attivita_id_id),
 	FOREIGN KEY (crisi_id) REFERENCES crisi(crisi_id)
 );
