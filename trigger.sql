@@ -57,10 +57,10 @@ FOR EACH ROW
 EXECUTE FUNCTION salva_storico_personale();
 
 
-CREATE OR REPLACE FUNCTION salva_storico_esterni()
+CREATE OR REPLACE FUNCTION salva_storico_esterno()
 RETURNS TRIGGER AS $$
 BEGIN
-    INSERT INTO esterni_storico (
+    INSERT INTO esterno_storico (
         esterni_id, tipo_esterno, nome_ragione_sociale, cf_piva, soggetto_nis2, stakeholder_id, data_modifica, tipo_operazione
     )
     VALUES (
@@ -70,10 +70,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_esterni_versioning
-BEFORE UPDATE OR DELETE ON esterni
+CREATE TRIGGER trg_esterno_versioning
+BEFORE UPDATE OR DELETE ON esterno
 FOR EACH ROW
-EXECUTE FUNCTION salva_storico_esterni();
+EXECUTE FUNCTION salva_storico_esterno();
 
 
 CREATE OR REPLACE FUNCTION salva_storico_stakeholder()
@@ -131,3 +131,70 @@ CREATE TRIGGER trg_utenze_versioning
 BEFORE UPDATE OR DELETE ON utenze
 FOR EACH ROW
 EXECUTE FUNCTION salva_storico_utenze();
+
+CREATE OR REPLACE FUNCTION valida_date()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.data_fine IS NOT NULL AND NEW.data_fine <= NEW.data_inizio THEN
+        RAISE EXCEPTION 'data_fine (%) deve essere successiva a data_inizio (%)', 
+            NEW.data_fine, NEW.data_inizio;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION valida_date_creazione_dimsissione()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.data_dismissione IS NOT NULL AND NEW.data_dismissione <= NEW.data_creazione THEN
+        RAISE EXCEPTION 'data_dismissione (%) deve essere successiva a data_creazione (%)', 
+            NEW.data_dismissione, NEW.data_creazione;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_fornitura_valida_date
+BEFORE INSERT OR UPDATE ON fornitura
+FOR EACH ROW
+EXECUTE FUNCTION valida_date();
+
+CREATE TRIGGER trg_utenze_valida_date
+BEFORE INSERT OR UPDATE ON utenze
+FOR EACH ROW
+EXECUTE FUNCTION valida_date();
+
+CREATE TRIGGER trg_nomina_valida_date
+BEFORE INSERT OR UPDATE ON nomina
+FOR EACH ROW
+EXECUTE FUNCTION valida_date();
+
+CREATE TRIGGER trg_attivita_valida_date
+BEFORE INSERT OR UPDATE ON attivita
+FOR EACH ROW
+EXECUTE FUNCTION valida_date();
+
+CREATE TRIGGER trg_crisi_valida_date
+BEFORE INSERT OR UPDATE ON crisi
+FOR EACH ROW
+EXECUTE FUNCTION valida_date();
+
+CREATE TRIGGER trg_procedura_valida_date_dismissione
+BEFORE INSERT OR UPDATE ON procedura
+FOR EACH ROW
+EXECUTE FUNCTION valida_date_creazione_dimsissione();
+
+CREATE OR REPLACE FUNCTION imposta_criticita_minima_fornitura()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.data_fine IS NOT NULL THEN
+        NEW.livello_criticita := 'Minimo';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_fornitura_criticita_minima
+BEFORE INSERT OR UPDATE ON fornitura
+FOR EACH ROW
+EXECUTE FUNCTION imposta_criticita_minima_fornitura();
