@@ -3,16 +3,16 @@ CREATE TABLE asset (
 	nome VARCHAR(255) NOT NULL,
 	funzionalita VARCHAR(255) NOT NULL,
 	aggiorn_manuale BOOLEAN NOT NULL,
-	stato VARCHAR(20) NOT NULL CHECK (stato IN ('Attivo', 'In dismissione', 'Dismesso')),
+	stato VARCHAR(50) NOT NULL CHECK (stato IN ('Attivo', 'In dismissione', 'Dismesso')),
 	configurazione TEXT,
 	macroarea VARCHAR(50) NOT NULL,
-	criticita VARCHAR(20) NOT NULL CHECK (criticita IN ('Minima','Bassa','Media','Alta'))
+	criticita VARCHAR(50) NOT NULL CHECK (criticita IN ('Minima','Bassa','Media','Alta'))
 );
 
 CREATE TABLE stakeholder (
 	stakeholder_id SERIAL PRIMARY KEY,
-	email_referente VARCHAR(30) NOT NULL,
-	telefono_referente VARCHAR(20) NOT NULL
+	email_referente VARCHAR(50) NOT NULL,
+	telefono_referente VARCHAR(50) NOT NULL
 );
 
 CREATE TABLE squadra (
@@ -22,9 +22,9 @@ CREATE TABLE squadra (
 
 CREATE TABLE hardware (
 	hardware_id SERIAL PRIMARY KEY,
-	categoria VARCHAR(20) NOT NULL,
-	mac VARCHAR(20),
-	ip VARCHAR (20),
+	categoria VARCHAR(50) NOT NULL,
+	mac VARCHAR(50),
+	ip VARCHAR(50),
 	produttore VARCHAR(255),
 	posizione VARCHAR(255) NOT NULL,
 	asset_id INTEGER NOT NULL,
@@ -44,26 +44,26 @@ CREATE TABLE database (
 	database_id SERIAL PRIMARY KEY,
 	contenuto VARCHAR (255) NOT NULL,
 	riservatezza VARCHAR (40) NOT NULL CHECK (riservatezza IN ('Pubblico', 'Sensibile', 'Riservato')),
-	posizione VARCHAR (20) NOT NULL CHECK (posizione IN ('In loco', 'In cloud')),
+	posizione VARCHAR(50) NOT NULL CHECK (posizione IN ('In loco', 'In cloud')),
 	asset_id INTEGER NOT NULL,
 	FOREIGN KEY (asset_id) REFERENCES asset(asset_id)
 );
 
 CREATE TABLE servizi(
 	servizi_id SERIAL PRIMARY KEY,
-	categoria VARCHAR (20) NOT NULL,
+	categoria VARCHAR(50) NOT NULL,
 	asset_id INTEGER NOT NULL,
 	FOREIGN KEY (asset_id) REFERENCES asset(asset_id)
 );
 
 CREATE TABLE fornitura (
 	fornitura_id SERIAL PRIMARY KEY,
-	tipo_fornitura VARCHAR(20) NOT NULL CHECK (tipo_fornitura IN ('Vendita','Acquisto')),
+	tipo_fornitura VARCHAR(50) NOT NULL CHECK (tipo_fornitura IN ('Vendita','Acquisto')),
 	tipologia VARCHAR(50) NOT NULL,
 	nome VARCHAR(100),
 	data_inizio DATE NOT NULL,
 	data_fine DATE,
-	livello_criticita VARCHAR(20) NOT NULL CHECK (livello_criticita IN ('Minimo', 'Basso', 'Medio','Alto')),
+	livello_criticita VARCHAR(50) NOT NULL CHECK (livello_criticita IN ('Minimo', 'Basso', 'Medio','Alto')),
 	asset_id INTEGER,
 	stakeholder_id INTEGER NOT NULL,
 	FOREIGN KEY (asset_id) REFERENCES asset(asset_id),
@@ -99,11 +99,11 @@ CREATE TABLE flussi_rete(
 	entita_destinazione VARCHAR(100) NOT NULL,
 	asset_destinazione INTEGER,
 	stakeholder_destinazione INTEGER,
-	direzione VARCHAR(20) NOT NULL CHECK (direzione IN ('Monodirezione', 'Bidirezionale')),
+	direzione VARCHAR(50) NOT NULL CHECK (direzione IN ('Monodirezionale', 'Bidirezionale')),
 	scopo VARCHAR(255) NOT NULL,
 	autorizzato_da INTEGER NOT NULL,
 	data_autorizzazione DATE NOT NULL,
-	stato VARCHAR(20) NOT NULL CHECK (stato IN ('Attivo', 'In dismissione', 'Dismesso')),
+	stato VARCHAR(50) NOT NULL CHECK (stato IN ('Attivo', 'In dismissione', 'Dismesso')),
 	FOREIGN KEY (asset_origine) REFERENCES asset(asset_id),
 	FOREIGN KEY (Stakeholder_origine) REFERENCES stakeholder(stakeholder_id),
 	FOREIGN KEY (asset_destinazione) REFERENCES asset(asset_id),
@@ -118,7 +118,7 @@ CREATE TABLE utenze (
 	data_inizio DATE NOT NULL,
 	data_fine DATE,
 	credenziali BOOLEAN NOT NULL,
-	tipo_accesso VARCHAR(20) NOT NULL CHECK (tipo_accesso IN ('Da remoto', 'In sede')),
+	tipo_accesso VARCHAR(50) NOT NULL CHECK (tipo_accesso IN ('Da remoto', 'In sede')),
 	tempo_conservazione_log INTERVAL NOT NULL,
 	concesso_da INTEGER NOT NULL,
 	modalita_accesso TEXT NOT NULL,
@@ -138,9 +138,9 @@ CREATE TABLE personale (
 
 CREATE TABLE esterno (
 	esterno_id SERIAL PRIMARY KEY,
-	tipo_esterno VARCHAR(20) NOT NULL CHECK (tipo_esterno IN ('Cliente', 'Fornitore', 'Cliente-fornitore')),
+	tipo_esterno VARCHAR(50) NOT NULL CHECK (tipo_esterno IN ('Cliente', 'Fornitore', 'Cliente-fornitore')),
 	ragione_sociale VARCHAR(100) NOT NULL,
-	cf_piva VARCHAR(30) NOT NULL,
+	cf_piva VARCHAR(50) NOT NULL,
 	soggetto_nis2 BOOLEAN NOT NULL,
 	stakeholder_id INTEGER NOT NULL,
 	FOREIGN KEY (stakeholder_id) REFERENCES Stakeholder(stakeholder_id)
@@ -150,7 +150,7 @@ CREATE TABLE vulnerabilita (
 	Vulnerabilita_id SERIAL PRIMARY KEY,
 	esterno_id INTEGER NOT NULL,
 	nome_vulnerabilita VARCHAR(100) NOT NULL,
-	gravita VARCHAR(20) NOT NULL CHECK (gravita IN ('Minima', 'Bassa', 'Media','Alta')),
+	gravita VARCHAR(50) NOT NULL CHECK (gravita IN ('Minima', 'Bassa', 'Media','Alta')),
 	note TEXT,
 	FOREIGN KEY (esterno_id) REFERENCES esterno(esterno_id)
 );
@@ -175,10 +175,10 @@ CREATE TABLE formazione (
 );
 
 CREATE TABLE squadra_stakeholder (
-	oper_stak_id SERIAL PRIMARY KEY,
 	squadra_id INTEGER NOT NULL,
 	stakeholder_id INTEGER NOT NULL,
-	ruolo VARCHAR(20) NOT NULL CHECK (ruolo IN ('Responsible', 'Accountable', 'Consulted','Informed')),
+	ruolo VARCHAR(50) NOT NULL CHECK (ruolo IN ('Responsible', 'Accountable', 'Consulted','Informed')),
+	PRIMARY KEY (squadra_id, stakeholder_id, ruolo),
 	FOREIGN KEY (squadra_id) REFERENCES squadra(squadra_id),
 	FOREIGN KEY (stakeholder_id) REFERENCES Stakeholder(stakeholder_id)
 );
@@ -187,7 +187,7 @@ CREATE TABLE nomina (
 	nomina_id SERIAL PRIMARY KEY,
 	nome VARCHAR(255) NOT NULL,
 	descrizione TEXT NOT NULL,
-	dati VARCHAR(20) NOT NULL CHECK (dati IN('Dati pubblici','Dati sensibili','Dati riservati')),
+	dati VARCHAR(50) NOT NULL CHECK (dati IN('Dati pubblici','Dati sensibili','Dati riservati')),
 	data_inizio DATE NOT NULL,
 	data_fine DATE,
 	link_documento TEXT NOT NULL,
@@ -205,8 +205,8 @@ CREATE TABLE raci (
 CREATE TABLE ruolo_raci (
 	raci_id INTEGER NOT NULL,
 	nomina_id INTEGER NOT NULL,
-	ruolo VARCHAR(20) NOT NULL CHECK (ruolo IN ('Responsible', 'Accountable', 'Consulted','Informed')),
-	PRIMARY KEY (raci_id, nomina_id),
+	ruolo VARCHAR(50) NOT NULL CHECK (ruolo IN ('Responsible', 'Accountable', 'Consulted','Informed')),
+	PRIMARY KEY (raci_id, nomina_id, ruolo),
 	FOREIGN KEY (raci_id) REFERENCES raci(raci_id),
 	FOREIGN KEY (nomina_id) REFERENCES nomina(nomina_id)
 );
@@ -256,8 +256,8 @@ CREATE TABLE miglioramento (
 	nome VARCHAR(100) NOT NULL,
 	descrizione TEXT NOT NULL,
 	scopo TEXT NOT NULL,
-	stato VARCHAR(20) NOT NULL CHECK (stato IN ('Da attuare', 'In corso di attuazione', 'Attuato','Dismesso','Parzialmente attuato')),
-	priorita VARCHAR(20)NOT NULL CHECK (priorita IN ('Bassa', 'Media', 'Alta')),
+	stato VARCHAR(50) NOT NULL CHECK (stato IN ('Da attuare', 'In corso di attuazione', 'Attuato','Dismesso','Parzialmente attuato')),
+	priorita VARCHAR(50)NOT NULL CHECK (priorita IN ('Bassa', 'Media', 'Alta')),
 	scadenza DATE,
 	raci_id INTEGER NOT NULL,
 	note TEXT,
@@ -292,7 +292,7 @@ CREATE TABLE test_backup (
 CREATE TABLE comunicazione_attivita (
 	comunicazione_id SERIAL PRIMARY KEY,
 	attivita_id INTEGER NOT NULL,
-	direzione VARCHAR(20) NOT NULL CHECK (direzione IN ('Interna', 'Esterna')),
+	direzione VARCHAR(50) NOT NULL CHECK (direzione IN ('Interna', 'Esterna')),
 	tipo_comunicazione VARCHAR(200) NOT NULL,
 	comunicazione TEXT NOT NULL,
 	destinatari TEXT NOT NULL,
@@ -320,7 +320,7 @@ CREATE TABLE procedura (
 	con_disattivazione TEXT NOT NULL,
 	proced_report TEXT NOT NULL,
 	data_creazione DATE NOT NULL,
-	data_dimissione DATE,
+	data_dismissione DATE,
 	link_documento TEXT NOT NULL,
 	approvato BOOLEAN NOT NULL,
 	FOREIGN KEY (raci_id) REFERENCES raci(raci_id)
@@ -337,7 +337,7 @@ CREATE TABLE asset_procedura (
 CREATE TABLE comunicazione_procedura (
 	comunicazione_id SERIAL PRIMARY KEY,
 	procedura_id INTEGER NOT NULL,
-	direzione VARCHAR(20) NOT NULL CHECK (direzione IN ('Interna','Esterna')),
+	direzione VARCHAR(50) NOT NULL CHECK (direzione IN ('Interna','Esterna')),
 	tipo_comunicazione VARCHAR(200) NOT NULL,
 	comunicazione TEXT NOT NULL,
 	destinatari TEXT NOT NULL,
@@ -368,9 +368,9 @@ CREATE TABLE rischio (
 	data_rilevazione DATE,
 	tipologia_rischio VARCHAR(100) NOT NULL CHECK (tipologia_rischio IN ('Cyber/informatico', 'Operativo/tecnico', 'Umano','Terze parti','Fisico/ambientale','Altro')),
 	descrizione TEXT NOT NULL,
-	analisi_rischio_prob VARCHAR(20) NOT NULL CHECK (analisi_rischio_prob IN ('Minima', 'Bassa', 'Media','Alta')),
-	analisi_rischio_grav VARCHAR(20) NOT NULL CHECK (analisi_rischio_grav IN ('Minima', 'Bassa', 'Media','Alta')),
-	stato VARCHAR(20) NOT NULL CHECK (stato IN ('Attivo', 'Eliminato', 'Mitigato','Trasferito','Accettato')),
+	analisi_rischio_prob VARCHAR(50) NOT NULL CHECK (analisi_rischio_prob IN ('Minima', 'Bassa', 'Media','Alta')),
+	analisi_rischio_grav VARCHAR(50) NOT NULL CHECK (analisi_rischio_grav IN ('Minima', 'Bassa', 'Media','Alta')),
+	stato VARCHAR(50) NOT NULL CHECK (stato IN ('Attivo', 'Eliminato', 'Mitigato','Trasferito','Accettato')),
 	note TEXT,
 	FOREIGN KEY (test_vulnerabilita_id) REFERENCES test_vulnerabilita(test_id)
 );
@@ -393,8 +393,8 @@ CREATE TABLE crisi (
 	report TEXT NOT NULL,
 	causa TEXT,
 	conseguenze TEXT,
-	gravita VARCHAR(20) NOT NULL CHECK (gravita IN ('Bassa', 'Media', 'Alta')),
-	stato VARCHAR(20) NOT NULL CHECK (stato IN ('In corso', 'In fase di elaborazione', 'Mitigata','Annullata')),
+	gravita VARCHAR(50) NOT NULL CHECK (gravita IN ('Bassa', 'Media', 'Alta')),
+	stato VARCHAR(50) NOT NULL CHECK (stato IN ('In corso', 'In fase di elaborazione', 'Mitigata','Annullata')),
 	FOREIGN KEY (squadra_id) REFERENCES squadra(squadra_id)
 );
 
@@ -411,30 +411,30 @@ CREATE TABLE mitigare_crisi (
 CREATE TABLE asset_storico (
 	asset_id INTEGER,
 	nome VARCHAR(255) NOT NULL,
-	funzionlita VARCHAR(255) NOT NULL,
+	funzionalita VARCHAR(255) NOT NULL,
 	aggiorn_manuale BOOLEAN NOT NULL,
-	stato VARCHAR(20) NOT NULL CHECK (stato IN ('Attivo', 'In dismissione', 'Dismesso')),
+	stato VARCHAR(50) NOT NULL CHECK (stato IN ('Attivo', 'In dismissione', 'Dismesso')),
 	configurazione TEXT,
 	macroarea VARCHAR(50) NOT NULL,
-	criticita VARCHAR(20) NOT NULL CHECK (criticita IN ('Minima','Bassa','Media','Alta')),
+	criticita VARCHAR(50) NOT NULL CHECK (criticita IN ('Minima','Bassa','Media','Alta')),
 	storico_id SERIAL PRIMARY KEY,
 	data_modifica DATE,
-	tipo_operazione VARCHAR(20)
+	tipo_operazione VARCHAR(50)
 );
 
 CREATE TABLE fornitura_storico (
 	fornitura_id INTEGER,
-	tipo_fornitura VARCHAR(20) NOT NULL CHECK (tipo_fornitura IN ('Vendita','Acquisto')),
+	tipo_fornitura VARCHAR(50) NOT NULL CHECK (tipo_fornitura IN ('Vendita','Acquisto')),
 	tipologia VARCHAR(50) NOT NULL,
 	nome VARCHAR(100),
 	data_inizio DATE NOT NULL,
 	data_fine DATE,
-	livello_criticita VARCHAR(20) NOT NULL CHECK (livello_criticita IN ('Minimo', 'Basso', 'Medio','Alto')),
+	livello_criticita VARCHAR(50) NOT NULL CHECK (livello_criticita IN ('Minimo', 'Basso', 'Medio','Alto')),
 	asset_id INTEGER,
 	stakeholder_id INTEGER NOT NULL,
 	storico_id SERIAL PRIMARY KEY,
 	data_modifica DATE,
-	tipo_operazione VARCHAR(20)
+	tipo_operazione VARCHAR(50)
 );
 
 CREATE TABLE utenze_storico (
@@ -444,13 +444,13 @@ CREATE TABLE utenze_storico (
 	data_inizio DATE NOT NULL,
 	data_fine DATE,
 	credenziali BOOLEAN NOT NULL,
-	tipo_accesso VARCHAR(20) NOT NULL CHECK (tipo_accesso IN ('Da remoto', 'In sede')),
-	tempo_conservazione_log DATE NOT NULL,
+	tipo_accesso VARCHAR(50) NOT NULL CHECK (tipo_accesso IN ('Da remoto', 'In sede')),
+	tempo_conservazione_log INTERVAL NOT NULL,
 	concesso_da INTEGER NOT NULL,
 	modalita_accesso TEXT NOT NULL,
 	storico_id SERIAL PRIMARY KEY,
 	data_modifica DATE,
-	tipo_operazione VARCHAR(20)
+	tipo_operazione VARCHAR(50)
 );
 
 CREATE TABLE personale_storico (
@@ -461,26 +461,26 @@ CREATE TABLE personale_storico (
 	stakeholder_id INTEGER NOT NULL,
 	storico_id SERIAL PRIMARY KEY,
 	data_modifica DATE,
-	tipo_operazione VARCHAR(20)
+	tipo_operazione VARCHAR(50)
 );
 
 CREATE TABLE esterno_storico (
 	esterno_id  INTEGER,
-	tipo_esterno VARCHAR(20) NOT NULL CHECK (tipo_esterno IN ('Cliente', 'Fornitore', 'Cliente-fornitore')),
+	tipo_esterno VARCHAR(50) NOT NULL CHECK (tipo_esterno IN ('Cliente', 'Fornitore', 'Cliente-fornitore')),
 	ragione_sociale VARCHAR(100) NOT NULL,
-	cf_piva VARCHAR(30) NOT NULL,
+	cf_piva VARCHAR(50) NOT NULL,
 	soggetto_nis2 BOOLEAN NOT NULL,
 	stakeholder_id INTEGER NOT NULL,
 	storico_id SERIAL PRIMARY KEY,
 	data_modifica DATE,
-	tipo_operazione VARCHAR(20)
+	tipo_operazione VARCHAR(50)
 );
 
 CREATE TABLE nomina_storico (
 	nomina_id  INTEGER,
 	nome VARCHAR(255) NOT NULL,
 	descrizione TEXT NOT NULL,
-	dati VARCHAR(20) NOT NULL,
+	dati VARCHAR(50) NOT NULL,
 	data_inizio DATE NOT NULL,
 	data_fine DATE,
 	link_documento TEXT NOT NULL,
@@ -488,14 +488,23 @@ CREATE TABLE nomina_storico (
 	sostituto INTEGER NOT NULL,
 	storico_id SERIAL PRIMARY KEY,
 	data_modifica DATE,
-	tipo_operazione VARCHAR(20)
+	tipo_operazione VARCHAR(50)
 );
 
 CREATE TABLE stakeholder_storico (
 	stakeholder_id  INTEGER,
-	email_referente VARCHAR(30) NOT NULL,
-	telefono_referente VARCHAR(20) NOT NULL,
+	email_referente VARCHAR(50) NOT NULL,
+	telefono_referente VARCHAR(50) NOT NULL,
 	storico_id SERIAL PRIMARY KEY,
 	data_modifica DATE,
-	tipo_operazione VARCHAR(20)
+	tipo_operazione VARCHAR(50)
+);
+
+CREATE TABLE squadra_stakeholder_storico (
+	squadra_id INTEGER NOT NULL,
+	stakeholder_id INTEGER NOT NULL,
+	ruolo VARCHAR(50) NOT NULL CHECK (ruolo IN ('Responsible', 'Accountable', 'Consulted','Informed')),
+	storico_id SERIAL PRIMARY KEY,
+	data_modifica DATE,
+	tipo_operazione VARCHAR(50)
 );

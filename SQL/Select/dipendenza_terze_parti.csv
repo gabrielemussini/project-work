@@ -1,0 +1,6 @@
+"fornitura_id","tipo_fornitura","tipologia","fornitore","livello_criticita","data_inizio","asset_collegato","ragione_sociale","soggetto_nis2"
+1,"Acquisto","Hosting cloud","Servizio hosting","Basso","2024-01-01","Hosting Linux","CloudHealth Srl",True
+2,"Acquisto","Materia prima","Acciaio","Alto","2023-06-15",NULL,"MetalMec SpA",False
+4,"Vendita","Software","Vendita Logistika 2000","Alto","2026-01-01","Logistika 2000","Trazport srl",False
+6,"Vendita","Manutenzione","Manutenzione software Logistika 2000","Medio","2025-12-01","Manutenzione Logistika","Megazzino srl",False
+5,"Vendita","Software","Vendita Logistika 2000","Alto","2025-12-01","Logistika 2000","Megazzino srl",False

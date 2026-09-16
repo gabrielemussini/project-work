@@ -2,12 +2,16 @@ CREATE OR REPLACE FUNCTION salva_storico_asset()
 RETURNS TRIGGER AS $$
 BEGIN
     INSERT INTO asset_storico (
-        asset_id, nome, funzionalita, stato, configurazione, macroarea, data_modifica, tipo_operazione
+        asset_id, nome, funzionalita, aggiorn_manuale, stato, configurazione, macroarea, criticita, data_modifica, tipo_operazione
     )
     VALUES (
-        OLD.asset_id, OLD.nome, OLD.funzionalita, OLD.stato, OLD.configurazione, OLD.macroarea, NOW(), TG_OP
+        OLD.asset_id, OLD.nome, OLD.funzionalita, OLD.aggiorn_manuale, OLD.stato, OLD.configurazione, OLD.macroarea, OLD.criticita, NOW(), TG_OP
     );
-    RETURN OLD;
+    IF TG_OP = 'DELETE' THEN
+        RETURN OLD;   -- permette alla cancellazione di procedere
+    ELSE
+        RETURN NEW;   -- permette all'aggiornamento di scrivere i NUOVI valori
+    END IF;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -28,7 +32,11 @@ BEGIN
         OLD.fornitura_id, OLD.tipo_fornitura, OLD.tipologia, OLD.nome, OLD.livello_criticita,
         OLD.data_inizio, OLD.data_fine, OLD.asset_id, OLD.stakeholder_id, NOW(), TG_OP
     );
-    RETURN OLD;
+    IF TG_OP = 'DELETE' THEN
+        RETURN OLD;   -- permette alla cancellazione di procedere
+    ELSE
+        RETURN NEW;   -- permette all'aggiornamento di scrivere i NUOVI valori
+    END IF;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -42,12 +50,16 @@ CREATE OR REPLACE FUNCTION salva_storico_personale()
 RETURNS TRIGGER AS $$
 BEGIN
     INSERT INTO personale_storico (
-        personale_id, nome, cognome, mansione, ruolo, stakeholder_id, data_modifica, tipo_operazione
+        personale_id, nome, cognome, mansione, stakeholder_id, data_modifica, tipo_operazione
     )
     VALUES (
-        OLD.personale_id, OLD.nome, OLD.cognome, OLD.mansione, OLD.ruolo, OLD.stakeholder_id, NOW(), TG_OP
+        OLD.personale_id, OLD.nome, OLD.cognome, OLD.mansione, OLD.stakeholder_id, NOW(), TG_OP
     );
-    RETURN OLD;
+    IF TG_OP = 'DELETE' THEN
+        RETURN OLD;   -- permette alla cancellazione di procedere
+    ELSE
+        RETURN NEW;   -- permette all'aggiornamento di scrivere i NUOVI valori
+    END IF;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -61,12 +73,16 @@ CREATE OR REPLACE FUNCTION salva_storico_esterno()
 RETURNS TRIGGER AS $$
 BEGIN
     INSERT INTO esterno_storico (
-        esterni_id, tipo_esterno, nome_ragione_sociale, cf_piva, soggetto_nis2, stakeholder_id, data_modifica, tipo_operazione
+        esterno_id, tipo_esterno, ragione_sociale, cf_piva, soggetto_nis2, stakeholder_id, data_modifica, tipo_operazione
     )
     VALUES (
-        OLD.estrno_id, OLD.tipo_esterno, OLD.nome_ragione_sociale, OLD.cf_piva, OLD.soggetto_nis2, OLD.stakeholder_id, NOW(), TG_OP
+        OLD.esterno_id, OLD.tipo_esterno, OLD.ragione_sociale, OLD.cf_piva, OLD.soggetto_nis2, OLD.stakeholder_id, NOW(), TG_OP
     );
-    RETURN OLD;
+    IF TG_OP = 'DELETE' THEN
+        RETURN OLD;   -- permette alla cancellazione di procedere
+    ELSE
+        RETURN NEW;   -- permette all'aggiornamento di scrivere i NUOVI valori
+    END IF;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -85,7 +101,11 @@ BEGIN
     VALUES (
         OLD.stakeholder_id, OLD.telefono_referente, OLD.email_referente, NOW(), TG_OP
     );
-    RETURN OLD;
+    IF TG_OP = 'DELETE' THEN
+        RETURN OLD;   -- permette alla cancellazione di procedere
+    ELSE
+        RETURN NEW;   -- permette all'aggiornamento di scrivere i NUOVI valori
+    END IF;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -104,7 +124,11 @@ BEGIN
     VALUES (
         OLD.nomina_id, OLD.nome, OLD.descrizione, OLD.dati, OLD.data_inizio, OLD.data_fine, OLD.link_documento, OLD.stakeholder_id, OLD.sostituto, NOW(), TG_OP
     );
-    RETURN OLD;
+    IF TG_OP = 'DELETE' THEN
+        RETURN OLD;   -- permette alla cancellazione di procedere
+    ELSE
+        RETURN NEW;   -- permette all'aggiornamento di scrivere i NUOVI valori
+    END IF;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -123,7 +147,11 @@ BEGIN
     VALUES (
         OLD.utenze_id, OLD.asset_id, OLD.stakeholder_id, OLD.data_inizio, OLD.data_fine, OLD.credenziali, OLD.tipo_accesso, OLD.tempo_conservazione_log, OLD.concesso_da, OLD.modalita_accesso, NOW(), TG_OP
     );
-    RETURN OLD;
+    IF TG_OP = 'DELETE' THEN
+        RETURN OLD;   -- permette alla cancellazione di procedere
+    ELSE
+        RETURN NEW;   -- permette all'aggiornamento di scrivere i NUOVI valori
+    END IF;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -132,11 +160,33 @@ BEFORE UPDATE OR DELETE ON utenze
 FOR EACH ROW
 EXECUTE FUNCTION salva_storico_utenze();
 
+CREATE OR REPLACE FUNCTION salva_storico_squadra_stakeholder()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO squadra_stakeholder_storico (
+        squadra_id, stakeholder_id, ruolo, data_modifica, tipo_operazione
+    )
+    VALUES (
+        OLD.squadra_id, OLD.stakeholder_id, OLD.ruolo, NOW(), TG_OP
+    );
+    IF TG_OP = 'DELETE' THEN
+        RETURN OLD;   -- permette alla cancellazione di procedere
+    ELSE
+        RETURN NEW;   -- permette all'aggiornamento di scrivere i NUOVI valori
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_squadra_stakeholder_versioning
+BEFORE UPDATE OR DELETE ON squadra_stakeholder
+FOR EACH ROW
+EXECUTE FUNCTION salva_storico_squadra_stakeholder();
+
 CREATE OR REPLACE FUNCTION valida_date()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF NEW.data_fine IS NOT NULL AND NEW.data_fine <= NEW.data_inizio THEN
-        RAISE EXCEPTION 'data_fine (%) deve essere successiva a data_inizio (%)', 
+    IF NEW.data_fine IS NOT NULL AND NEW.data_fine < NEW.data_inizio THEN
+        RAISE EXCEPTION 'data_fine (%) non deve essere precedente a data_inizio (%)', 
             NEW.data_fine, NEW.data_inizio;
     END IF;
     RETURN NEW;
@@ -146,8 +196,8 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION valida_date_creazione_dimsissione()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF NEW.data_dismissione IS NOT NULL AND NEW.data_dismissione <= NEW.data_creazione THEN
-        RAISE EXCEPTION 'data_dismissione (%) deve essere successiva a data_creazione (%)', 
+    IF NEW.data_dismissione IS NOT NULL AND NEW.data_dismissione < NEW.data_creazione THEN
+        RAISE EXCEPTION 'data_dismissione (%) non deve essere precedente a data_creazione (%)', 
             NEW.data_dismissione, NEW.data_creazione;
     END IF;
     RETURN NEW;

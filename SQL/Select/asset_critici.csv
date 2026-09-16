@@ -1,0 +1,7 @@
+"asset_id","nome","macroarea","criticita","stato"
+1,"Server DELL PowerEdge R450","Infrastruttura IT","Alta","Attivo"
+2,"CRM Clienti","Gestione Dati","Alta","Attivo"
+5,"Norton 360","Infrastruttura IT","Alta","Attivo"
+7,"Logistika 2000","Produzione beni e servizi","Alta","Attivo"
+3,"RLK8-811B4","Sicurezza Fisica","Media","Attivo"
+8,"Manutenzione Logistika","Produzione beni e servizi","Media","Attivo"
